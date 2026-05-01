@@ -1,0 +1,14 @@
+{
+  "name": "revitalization-2026-feedback",
+  "version": "1.0.0",
+  "description": "Daily feedback report system for DLCF 2026",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "body-parser": "^1.20.2"
+  }
+}
