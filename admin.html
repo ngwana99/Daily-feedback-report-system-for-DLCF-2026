@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | DLCF 2026</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Admin Dashboard</h1>
+        <p>Live Feedback from Sectional Heads</p>
+    </header>
+
+    <div class="container" id="reportsContainer">
+        <h2>Recent Reports</h2>
+        <div id="loading">Loading reports...</div>
+    </div>
+
+    <script>
+        async function loadReports() {
+            const response = await fetch('/api/reports');
+            const reports = await response.json();
+            const container = document.getElementById('reportsContainer');
+            document.getElementById('loading').style.display = 'none';
+
+            if (reports.length === 0) {
+                container.innerHTML += '<p>No reports submitted yet today.</p>';
+                return;
+            }
+
+            reports.forEach(report => {
+                const card = document.createElement('div');
+                card.className = 'report-card';
+                card.innerHTML = `
+                    <span class="badge">${report.date}</span>
+                    <span class="badge" style="background: var(--primary); color: white;">${report.section}</span>
+                    <h3>Leader: ${report.leader}</h3>
+                    <p><strong>Achievements:</strong><br>${report.achievements}</p>
+                    <p><strong>Challenges:</strong><br>${report.challenges}</p>
+                    <p><strong>Suggestions:</strong><br>${report.suggestions}</p>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        window.onload = loadReports;
+    </script>
+</body>
+</html>

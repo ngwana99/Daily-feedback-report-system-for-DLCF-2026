@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submit Daily Report | DLCF 2026</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Revitalization 2026</h1>
+        <p>Daily Sectional Feedback Report</p>
+    </header>
+
+    <div class="container">
+        <form id="reportForm">
+            <label for="section">Conference Section</label>
+            <select id="section" required>
+                <option value="">-- Select Your Section --</option>
+                <option value="Electricals & Electronics">Electricals & Electronics</option>
+                <option value="SMAT">SMAT</option>
+                <option value="Publicity & Mobilization">Publicity & Mobilization</option>
+                <option value="Protocol">Protocol</option>
+                <option value="Accommodation & Construction">Accommodation & Construction</option>
+                <option value="Transportation & Logistics">Transportation & Logistics</option>
+                <option value="Ushering & Security">Ushering & Security</option>
+                <option value="Decoration & Venue">Decoration & Venue</option>
+                <option value="Choir">Choir</option>
+                <option value="Prayer Band">Prayer Band</option>
+                <option value="Translation & Interpretation">Translation & Interpretation</option>
+                <option value="Secretariat">Secretariat</option>
+                <option value="Kitchen">Kitchen</option>
+                <!-- Add the remaining sections here -->
+            </select>
+
+            <label for="leader">Sectional Leader Name</label>
+            <input type="text" id="leader" placeholder="E.g., Bro Yvan Bami" required>
+
+            <label for="achievements">Daily Achievements</label>
+            <textarea id="achievements" rows="4" placeholder="What was accomplished today?" required></textarea>
+
+            <label for="challenges">Challenges Encountered</label>
+            <textarea id="challenges" rows="4" placeholder="What issues did you face?" required></textarea>
+
+            <label for="suggestions">Recommendations for Tomorrow</label>
+            <textarea id="suggestions" rows="3" placeholder="Actionable steps for admin..."></textarea>
+
+            <button type="submit">Submit Report</button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('reportForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const data = {
+                section: document.getElementById('section').value,
+                leader: document.getElementById('leader').value,
+                achievements: document.getElementById('achievements').value,
+                challenges: document.getElementById('challenges').value,
+                suggestions: document.getElementById('suggestions').value
+            };
+
+            const response = await fetch('/api/reports', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            if(response.ok) {
+                alert('Report submitted successfully!');
+                document.getElementById('reportForm').reset();
+            }
+        });
+    </script>
+</body>
+</html>
