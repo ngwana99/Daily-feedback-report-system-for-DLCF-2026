@@ -6,37 +6,14 @@
     <title>Admin Dashboard | DLCF 2026</title>
     <link rel="stylesheet" href="style.css">
     <style>
-        .action-bar {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-        .btn-action {
-            background-color: var(--secondary);
-            color: #333;
-            flex: 1;
-            margin-top: 0;
-            min-width: 150px;
-        }
+        .action-bar { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .btn-action { background-color: var(--secondary); color: #333; flex: 1; min-width: 150px; margin-top: 0;}
         .btn-action:hover { background-color: #d1b84b; }
-        .btn-logout {
-            background-color: #333;
-            color: white;
-            flex: 1;
-            margin-top: 0;
-            min-width: 150px;
-        }
-        .btn-logout:hover { background-color: #111; }
-        .commission-header {
-            background-color: #f1f1f1;
-            padding: 10px;
-            border-radius: 4px;
-            margin-bottom: 15px;
-            border-left: 4px solid #333;
-        }
-        .commission-header h4 { margin: 0 0 5px 0; color: #333; }
-        .commission-header p { margin: 0; font-size: 0.9em; color: #555; font-weight: bold;}
+        .btn-word { background-color: #2b579a; color: white; flex: 1; min-width: 150px; margin-top: 0;} /* Word Blue */
+        .btn-logout { background-color: #333; color: white; flex: 1; min-width: 150px; margin-top: 0;}
+        .commission-header { background-color: #f1f1f1; padding: 10px; border-radius: 4px; margin-bottom: 15px; border-left: 4px solid var(--primary); }
+        .commission-header h4 { margin: 0; color: #333; }
+        .perf-badge { float: right; background: var(--primary); color: white; padding: 5px 10px; border-radius: 5px; font-weight: bold;}
     </style>
 </head>
 <body>
@@ -46,46 +23,18 @@
     </header>
 
     <div class="container">
-        <!-- New Action Buttons -->
         <div class="action-bar">
-            <button class="btn-action" onclick="downloadReports('today')">📥 Download Today's Excel</button>
-            <button class="btn-action" onclick="downloadReports('all')">📥 Download All Reports Excel</button>
+            <button class="btn-action" onclick="downloadExcel()">📊 Download Excel</button>
+            <button class="btn-word" onclick="downloadWord()">📝 Download MS Word</button>
             <button class="btn-logout" onclick="logout()">🚪 Logout</button>
         </div>
 
-        <h2>Recent Reports</h2>
         <div id="loading">Loading reports...</div>
         <div id="reportsContainer"></div>
     </div>
 
     <script>
         let allReports = [];
-
-        // Dictionary linking Sections to their Commission Heads based on your document
-        const commissionMap = {
-            "Electricals & Electronics": { commission: "Electricals & Technology", heads: "Ps Aweh Bless & Ps Frederick Nchuseh" },
-            "SMAT": { commission: "Electricals & Technology", heads: "Ps Aweh Bless & Ps Frederick Nchuseh" },
-            "Publicity & Mobilization": { commission: "Communication & PR", heads: "Sis Dr. Obasi Modestine & Sis Dr. Mbafor Gazelle" },
-            "Communication & Media": { commission: "Communication & PR", heads: "Sis Dr. Obasi Modestine & Sis Dr. Mbafor Gazelle" },
-            "Protocol": { commission: "Communication & PR", heads: "Sis Dr. Obasi Modestine & Sis Dr. Mbafor Gazelle" },
-            "Accommodation & Construction": { commission: "Accommodation & Logistics", heads: "Ps Dr Ndifon Isaiah & Pastor Paul Kelechi" },
-            "Transportation & Logistics": { commission: "Accommodation & Logistics", heads: "Ps Dr Ndifon Isaiah & Pastor Paul Kelechi" },
-            "Ushering & Security": { commission: "Accommodation & Logistics", heads: "Ps Dr Ndifon Isaiah & Pastor Paul Kelechi" },
-            "Decoration & Venue": { commission: "Accommodation & Logistics", heads: "Ps Dr Ndifon Isaiah & Pastor Paul Kelechi" },
-            "Choir": { commission: "Intercession & Ministration", heads: "Ps Baah Herve & Sis Lepawah Blessing" },
-            "Prayer Band": { commission: "Intercession & Ministration", heads: "Ps Baah Herve & Sis Lepawah Blessing" },
-            "Talent Exhibition": { commission: "Intercession & Ministration", heads: "Ps Baah Herve & Sis Lepawah Blessing" },
-            "Translation & Interpretation": { commission: "Linguistics & Counselling", heads: "Sis Buke Pricillia & Ps George Toussee" },
-            "Orientation & Counselling": { commission: "Linguistics & Counselling", heads: "Sis Buke Pricillia & Ps George Toussee" },
-            "Secretariat": { commission: "Administration & Finance", heads: "Bro Taku Elvis & Sis Amaka Chioma" },
-            "Feedback & Reporting": { commission: "Administration & Finance", heads: "Bro Taku Elvis & Sis Amaka Chioma" },
-            "Finance": { commission: "Administration & Finance", heads: "Bro Taku Elvis & Sis Amaka Chioma" },
-            "Life Press": { commission: "Administration & Finance", heads: "Bro Taku Elvis & Sis Amaka Chioma" },
-            "Sanitation & Hygiene": { commission: "Welfare & Catering", heads: "Bro Nyong Harrison & Bro Tabot David" },
-            "Kitchen": { commission: "Welfare & Catering", heads: "Bro Nyong Harrison & Bro Tabot David" },
-            "Special Kitchen": { commission: "Welfare & Catering", heads: "Bro Nyong Harrison & Bro Tabot David" },
-            "Health & Welfare": { commission: "Welfare & Catering", heads: "Bro Nyong Harrison & Bro Tabot David" }
-        };
 
         async function loadReports() {
             try {
@@ -96,85 +45,86 @@
                 const container = document.getElementById('reportsContainer');
                 document.getElementById('loading').style.display = 'none';
 
-                if (allReports.length === 0) {
-                    container.innerHTML = '<p>No reports submitted yet.</p>';
-                    return;
-                }
-
                 allReports.forEach(report => {
-                    const mapping = commissionMap[report.section] || { commission: "Unknown Commission", heads: "Unknown Heads" };
-                    
                     const card = document.createElement('div');
                     card.className = 'report-card';
                     card.innerHTML = `
                         <div class="commission-header">
-                            <h4>${mapping.commission}</h4>
-                            <p>Commission Heads: ${mapping.heads}</p>
+                            <h4>${report.commissionHeads}</h4>
                         </div>
+                        <span class="perf-badge">Performance: ${report.performance}/10</span>
                         <span class="badge">${report.date}</span>
-                        <span class="badge" style="background: var(--primary); color: white;">${report.section}</span>
-                        <h3>Report By: ${report.leader}</h3>
-                        <p><strong>Achievements:</strong><br>${report.achievements}</p>
+                        <span class="badge" style="background: #333; color: white;">${report.section}</span>
+                        <h3>Leader: ${report.leader}</h3>
+                        <p><strong>Team Members:</strong> ${report.team}</p>
+                        <p><strong>Preparations:</strong><br>${report.preparations}</p>
+                        <p><strong>Activities:</strong><br>${report.activities}</p>
                         <p><strong>Challenges:</strong><br>${report.challenges}</p>
                         <p><strong>Suggestions:</strong><br>${report.suggestions}</p>
                     `;
                     container.appendChild(card);
                 });
             } catch (err) {
-                document.getElementById('loading').innerText = "Access Denied. Please refresh and login.";
+                document.getElementById('loading').innerText = "Access Denied.";
             }
         }
 
-        // Feature: Download to Excel (CSV format)
-        function downloadReports(type) {
-            let dataToExport = allReports;
-            const today = new Date().toLocaleDateString('en-GB');
+        // Export to MS Word (Perfectly arranged Table)
+        function downloadWord() {
+            let html = `
+            <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+            <head><meta charset='utf-8'><style>
+                table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+                th, td { border: 1px solid black; padding: 5px; font-family: Arial; font-size: 10pt; word-wrap: break-word; vertical-align: top; }
+                th { background-color: #E54F00; color: white; }
+                h2 { color: #E54F00; text-align: center; font-family: Arial;}
+            </style></head><body>
+            <h2>DLCF 2026: Comprehensive Reports</h2>
+            <table>
+                <tr>
+                    <th width="8%">Date</th><th width="12%">Commission</th><th width="10%">Section & Leader</th>
+                    <th width="10%">Team</th><th width="15%">Preparations</th><th width="15%">Activities</th>
+                    <th width="15%">Challenges</th><th width="5%">Perf.</th><th width="10%">Suggestions</th>
+                </tr>`;
 
-            if (type === 'today') {
-                dataToExport = allReports.filter(r => r.date === today);
-                if(dataToExport.length === 0) return alert("No reports for today yet!");
-            }
-
-            // Create Excel Headers
-            let csvContent = "Date,Commission,Commission Heads,Section,Sectional Leader,Achievements,Challenges,Suggestions\n";
-
-            dataToExport.forEach(r => {
-                const mapping = commissionMap[r.section] || { commission: "Unknown", heads: "Unknown" };
-                
-                // We wrap text in quotes so Excel handles commas and line breaks properly
-                const row = [
-                    `"${r.date}"`,
-                    `"${mapping.commission}"`,
-                    `"${mapping.heads}"`,
-                    `"${r.section}"`,
-                    `"${r.leader}"`,
-                    `"${r.achievements.replace(/"/g, '""')}"`,
-                    `"${r.challenges.replace(/"/g, '""')}"`,
-                    `"${r.suggestions.replace(/"/g, '""')}"`
-                ].join(",");
-                
-                csvContent += row + "\n";
+            allReports.forEach(r => {
+                html += `<tr>
+                    <td>${r.date}</td><td>${r.commissionHeads}</td><td><b>${r.section}</b><br>${r.leader}</td>
+                    <td>${r.team}</td><td>${r.preparations}</td><td>${r.activities}</td>
+                    <td>${r.challenges}</td><td>${r.performance}/10</td><td>${r.suggestions}</td>
+                </tr>`;
             });
+            html += `</table></body></html>`;
 
-            // Trigger Download
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
             const link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
-            link.download = `DLCF_Reports_${type}_${today.replace(/\//g, '-')}.csv`;
+            link.download = `DLCF_Reports_${new Date().toLocaleDateString('en-GB').replace(/\//g, '-')}.doc`;
             link.click();
         }
 
-        // Feature: Secure Logout
-        function logout() {
-            // Forces the browser to overwrite the saved credentials with fake ones
-            fetch('/api/reports', {
-                headers: { 'Authorization': 'Basic ' + btoa('logout:logout') }
-            }).then(() => {
-                // Redirect back to the public submission form
-                window.location.href = '/'; 
-            }).catch(() => {
-                window.location.href = '/'; 
+        // Export to Excel (CSV)
+        function downloadExcel() {
+            let csv = "Date,Commission,Section,Leader,Team,Preparations,Activities,Challenges,Performance,Suggestions\n";
+            allReports.forEach(r => {
+                const row = [
+                    `"${r.date}"`, `"${r.commissionHeads}"`, `"${r.section}"`, `"${r.leader}"`, `"${r.team.replace(/"/g, '""')}"`,
+                    `"${r.preparations.replace(/"/g, '""')}"`, `"${r.activities.replace(/"/g, '""')}"`,
+                    `"${r.challenges.replace(/"/g, '""')}"`, `"${r.performance}"`, `"${r.suggestions.replace(/"/g, '""')}"`
+                ].join(",");
+                csv += row + "\n";
             });
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = `DLCF_Reports.csv`;
+            link.click();
+        }
+
+        function logout() {
+            fetch('/api/reports', { headers: { 'Authorization': 'Basic ' + btoa('logout:logout') } })
+            .then(() => window.location.href = '/')
+            .catch(() => window.location.href = '/');
         }
 
         window.onload = loadReports;
