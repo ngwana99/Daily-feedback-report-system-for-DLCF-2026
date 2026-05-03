@@ -5,21 +5,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Submit Daily Report | DLCF 2026</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        .lang-switch { display: flex; justify-content: flex-end; margin-bottom: 10px; }
+        .lang-btn { background: #333; color: white; border: none; padding: 5px 15px; cursor: pointer; border-radius: 4px; font-weight: bold; }
+        .readonly-box { background: #eee; border: 1px solid #ccc; padding: 10px; border-radius: 4px; font-weight: bold; color: var(--primary); margin-top: 5px; }
+    </style>
 </head>
 <body>
     <header>
-        <h1>Revitalization 2026</h1>
-        <p>Daily Sectional Feedback Report</p>
+        <h1 id="t-title">Sectional Feedback Report</h1>
+        <p id="t-subtitle">DLCF 2026 National Campus Conference</p>
     </header>
 
     <div class="container">
+        <div class="lang-switch">
+            <button class="lang-btn" onclick="toggleLanguage()">🌐 English / Français</button>
+        </div>
+
         <form id="reportForm">
-            <label for="section">Conference Section</label>
-            <select id="section" required>
-                <option value="">-- Select Your Section --</option>
+            <label for="section" id="t-sectionLabel">Conference Section</label>
+            <select id="section" required onchange="updateCommission()">
+                <option value="">-- Select / Choisir --</option>
                 <option value="Electricals & Electronics">Electricals & Electronics</option>
                 <option value="SMAT">SMAT</option>
                 <option value="Publicity & Mobilization">Publicity & Mobilization</option>
+                <option value="Communication & Media">Communication & Media</option>
                 <option value="Protocol">Protocol</option>
                 <option value="Accommodation & Construction">Accommodation & Construction</option>
                 <option value="Transportation & Logistics">Transportation & Logistics</option>
@@ -27,50 +37,146 @@
                 <option value="Decoration & Venue">Decoration & Venue</option>
                 <option value="Choir">Choir</option>
                 <option value="Prayer Band">Prayer Band</option>
+                <option value="Talent Exhibition">Talent Exhibition</option>
                 <option value="Translation & Interpretation">Translation & Interpretation</option>
+                <option value="Orientation & Counselling">Orientation & Counselling</option>
                 <option value="Secretariat">Secretariat</option>
+                <option value="Feedback & Reporting">Feedback & Reporting</option>
+                <option value="Finance">Finance</option>
+                <option value="Life Press">Life Press</option>
+                <option value="Sanitation & Hygiene">Sanitation & Hygiene</option>
                 <option value="Kitchen">Kitchen</option>
-                <!-- Add the remaining sections here -->
+                <option value="Special Kitchen">Special Kitchen</option>
+                <option value="Health & Welfare">Health & Welfare</option>
             </select>
 
-            <label for="leader">Sectional Leader Name</label>
-            <input type="text" id="leader" placeholder="E.g., Bro Yvan Bami" required>
+            <label id="t-commLabel">Commission & Heads</label>
+            <div id="commissionBox" class="readonly-box">Select a section first / Choisissez d'abord une section</div>
+            <input type="hidden" id="commissionHeads" value="">
 
-            <label for="achievements">Daily Achievements</label>
-            <textarea id="achievements" rows="4" placeholder="What was accomplished today?" required></textarea>
+            <label for="leader" id="t-leaderLabel">Sectional Leader Name</label>
+            <input type="text" id="leader" required>
 
-            <label for="challenges">Challenges Encountered</label>
-            <textarea id="challenges" rows="4" placeholder="What issues did you face?" required></textarea>
+            <label for="team" id="t-teamLabel">Names of Team Members / Workers</label>
+            <textarea id="team" rows="2" required></textarea>
 
-            <label for="suggestions">Recommendations for Tomorrow</label>
-            <textarea id="suggestions" rows="3" placeholder="Actionable steps for admin..."></textarea>
+            <label for="preparations" id="t-prepLabel">Preparations made before the conference</label>
+            <textarea id="preparations" rows="3" required></textarea>
 
-            <button type="submit">Submit Report</button>
+            <label for="activities" id="t-actLabel">Activities carried out during the conference</label>
+            <textarea id="activities" rows="3" required></textarea>
+
+            <label for="challenges" id="t-chalLabel">Challenges faced</label>
+            <textarea id="challenges" rows="3" required></textarea>
+
+            <label for="performance" id="t-perfLabel">Overall Performance (1 = Poor, 10 = Excellent)</label>
+            <select id="performance" required>
+                <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option>
+                <option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option>
+                <option value="9">9</option><option value="10">10 (Excellent)</option>
+            </select>
+
+            <label for="suggestions" id="t-suggLabel">Suggestions and Needs for next conference</label>
+            <textarea id="suggestions" rows="3" required></textarea>
+
+            <button type="submit" id="t-submitBtn">Submit Report</button>
         </form>
     </div>
 
     <script>
+        // Data derived directly from your reference document
+        const commData = {
+            "Electricals & Electronics": "Electricals & Technology (Heads: Ps Aweh Bless, Ps Frederick Nchuseh)",
+            "SMAT": "Electricals & Technology (Heads: Ps Aweh Bless, Ps Frederick Nchuseh)",
+            "Publicity & Mobilization": "Communication & PR (Heads: Sis Dr. Obasi Modestine, Sis Dr. Mbafor Gazelle)",
+            "Communication & Media": "Communication & PR (Heads: Sis Dr. Obasi Modestine, Sis Dr. Mbafor Gazelle)",
+            "Protocol": "Communication & PR (Heads: Sis Dr. Obasi Modestine, Sis Dr. Mbafor Gazelle)",
+            "Accommodation & Construction": "Accommodation & Logistics (Heads: Ps Dr Ndifon Isaiah, Pastor Paul Kelechi)",
+            "Transportation & Logistics": "Accommodation & Logistics (Heads: Ps Dr Ndifon Isaiah, Pastor Paul Kelechi)",
+            "Ushering & Security": "Accommodation & Logistics (Heads: Ps Dr Ndifon Isaiah, Pastor Paul Kelechi)",
+            "Decoration & Venue": "Accommodation & Logistics (Heads: Ps Dr Ndifon Isaiah, Pastor Paul Kelechi)",
+            "Choir": "Intercession & Ministration (Heads: Ps Baah Herve, Sis Lepawah Blessing)",
+            "Prayer Band": "Intercession & Ministration (Heads: Ps Baah Herve, Sis Lepawah Blessing)",
+            "Talent Exhibition": "Intercession & Ministration (Heads: Ps Baah Herve, Sis Lepawah Blessing)",
+            "Translation & Interpretation": "Linguistics & Counselling (Heads: Sis Buke Pricillia, Ps George Toussee)",
+            "Orientation & Counselling": "Linguistics & Counselling (Heads: Sis Buke Pricillia, Ps George Toussee)",
+            "Secretariat": "Administration & Finance (Heads: Bro Taku Elvis, Sis Amaka Chioma)",
+            "Feedback & Reporting": "Administration & Finance (Heads: Bro Taku Elvis, Sis Amaka Chioma)",
+            "Finance": "Administration & Finance (Heads: Bro Taku Elvis, Sis Amaka Chioma)",
+            "Life Press": "Administration & Finance (Heads: Bro Taku Elvis, Sis Amaka Chioma)",
+            "Sanitation & Hygiene": "Welfare & Catering (Heads: Bro Nyong Harrison, Bro Tabot David)",
+            "Kitchen": "Welfare & Catering (Heads: Bro Nyong Harrison, Bro Tabot David)",
+            "Special Kitchen": "Welfare & Catering (Heads: Bro Nyong Harrison, Bro Tabot David)",
+            "Health & Welfare": "Welfare & Catering (Heads: Bro Nyong Harrison, Bro Tabot David)"
+        };
+
+        function updateCommission() {
+            const section = document.getElementById('section').value;
+            const display = document.getElementById('commissionBox');
+            const hiddenInput = document.getElementById('commissionHeads');
+            if(commData[section]) {
+                display.innerText = commData[section];
+                hiddenInput.value = commData[section];
+            } else {
+                display.innerText = "Select a section first";
+                hiddenInput.value = "";
+            }
+        }
+
+        // Bilingual Dictionary
+        const i18n = {
+            en: {
+                title: "Sectional Feedback Report", subtitle: "DLCF 2026 National Campus Conference",
+                sectionLabel: "Conference Section", commLabel: "Commission & Heads", leaderLabel: "Sectional Leader Name",
+                teamLabel: "Names of Team Members / Workers", prepLabel: "Preparations made before the conference",
+                actLabel: "Activities carried out during the conference", chalLabel: "Challenges faced",
+                perfLabel: "Overall Performance (1 = Poor, 10 = Excellent)", suggLabel: "Suggestions and Needs for next conference", submitBtn: "Submit Report"
+            },
+            fr: {
+                title: "Rapport Quotidien de Section", subtitle: "Conférence Nationale des Campus DLCF 2026",
+                sectionLabel: "Section de la Conférence", commLabel: "Commission et Responsables", leaderLabel: "Nom du Chef de Section",
+                teamLabel: "Noms des Membres de l'Équipe / Travailleurs", prepLabel: "Préparatifs avant la conférence",
+                actLabel: "Activités menées pendant la conférence", chalLabel: "Défis rencontrés",
+                perfLabel: "Performance Globale (1 = Médiocre, 10 = Excellent)", suggLabel: "Suggestions et Besoins pour la suite", submitBtn: "Soumettre le Rapport"
+            }
+        };
+
+        let currentLang = 'en';
+        function toggleLanguage() {
+            currentLang = currentLang === 'en' ? 'fr' : 'en';
+            document.getElementById('t-title').innerText = i18n[currentLang].title;
+            document.getElementById('t-subtitle').innerText = i18n[currentLang].subtitle;
+            document.getElementById('t-sectionLabel').innerText = i18n[currentLang].sectionLabel;
+            document.getElementById('t-commLabel').innerText = i18n[currentLang].commLabel;
+            document.getElementById('t-leaderLabel').innerText = i18n[currentLang].leaderLabel;
+            document.getElementById('t-teamLabel').innerText = i18n[currentLang].teamLabel;
+            document.getElementById('t-prepLabel').innerText = i18n[currentLang].prepLabel;
+            document.getElementById('t-actLabel').innerText = i18n[currentLang].actLabel;
+            document.getElementById('t-chalLabel').innerText = i18n[currentLang].chalLabel;
+            document.getElementById('t-perfLabel').innerText = i18n[currentLang].perfLabel;
+            document.getElementById('t-suggLabel').innerText = i18n[currentLang].suggLabel;
+            document.getElementById('t-submitBtn').innerText = i18n[currentLang].submitBtn;
+        }
+
         document.getElementById('reportForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
             const data = {
                 section: document.getElementById('section').value,
+                commissionHeads: document.getElementById('commissionHeads').value,
                 leader: document.getElementById('leader').value,
-                achievements: document.getElementById('achievements').value,
+                team: document.getElementById('team').value,
+                preparations: document.getElementById('preparations').value,
+                activities: document.getElementById('activities').value,
                 challenges: document.getElementById('challenges').value,
+                performance: document.getElementById('performance').value,
                 suggestions: document.getElementById('suggestions').value
             };
 
             const response = await fetch('/api/reports', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
             });
 
-            if(response.ok) {
-                alert('Report submitted successfully!');
-                document.getElementById('reportForm').reset();
-            }
+            if(response.ok) { alert(currentLang === 'en' ? 'Submitted!' : 'Soumis avec succès!'); window.location.reload(); }
         });
     </script>
 </body>
